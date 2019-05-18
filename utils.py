@@ -1,0 +1,47 @@
+'''
+--------------------------------------------------------
+@File    :   masker.py    
+@Contact :   1183862787@qq.com
+@License :   (C)Copyright 2017-2018, CS, WHU
+
+@Modify Time : 2019/5/18 23:51     
+@Author      : Liu Wang    
+@Version     : 1.0   
+@Desciption  : None
+--------------------------------------------------------  
+'''
+
+from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
+
+def encrypt(key_str, data_str)->bytes:
+	key_bytes = bytes(key_str, encoding='utf-8')
+	data_bytes = bytes(data_str, encoding='utf-8')
+	crypt_sm4 = CryptSM4()
+	crypt_sm4.set_key(key_bytes, SM4_ENCRYPT)
+	return crypt_sm4.crypt_ecb(data_bytes)  # bytes类型
+
+def decrypt(key_str, data_bytes)->str:
+	key_bytes = bytes(key_str, encoding='utf-8')
+	crypt_sm4 = CryptSM4()
+	crypt_sm4.set_key(key_bytes, SM4_DECRYPT)
+	decrypted_data = crypt_sm4.crypt_ecb(data_bytes)  # bytes类型
+	return str(decrypted_data, encoding='utf-8')
+
+def append_zero(key_str)->str:
+	"""对不够16位的密码做补零处理"""
+	if len(key_str) < 16:
+		key_str += '0' * (16 - len(key_str))
+	return key_str
+
+if __name__ == '__main__':
+	key_s = append_zero('123456')
+	key = bytes(key_s, encoding='utf-8')
+	value_s = str('姓名 刘旺 性别 男') #  bytes类型
+	print(key_s, value_s)
+	value_b = encrypt(key_s, value_s)
+
+	inter_v_s = hash(value_b)
+
+	value_s_2 = decrypt(key_s, value_b)
+	print(value_s_2)
+	assert value_s == value_s_2
