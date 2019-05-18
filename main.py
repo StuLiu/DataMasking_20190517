@@ -7,7 +7,7 @@
 @Modify Time : 2019/5/18 1:01     
 @Author      : Liu Wang    
 @Version     : 1.0   
-@Desciption  : None
+@Desciption  : 调用主窗口类启动程序。
 --------------------------------------------------------  
 ''' 
 
