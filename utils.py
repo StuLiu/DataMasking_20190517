@@ -12,6 +12,7 @@
 '''
 
 from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
+from gmssl.sm3 import sm3_hash
 import pickle
 
 def encrypt(key_str, data_str)->bytes:
@@ -46,6 +47,12 @@ def load_map(file_name):
 		data = pickle.load(file)
 		assert type(data) == type(dict())
 		return data
+
+def read_data(file_path)->(str,list):
+	with open(file_path, 'r', encoding='utf-8') as file:
+		lines = file.readlines()
+		return lines[0], lines[1:]
+
 
 if __name__ == '__main__':
 	key_s = append_zero('123456')

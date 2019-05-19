@@ -14,11 +14,11 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton_OK">
+   <widget class="QPushButton" name="pushButton_export">
     <property name="geometry">
      <rect>
       <x>180</x>
-      <y>180</y>
+      <y>190</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -30,14 +30,14 @@
      </font>
     </property>
     <property name="text">
-     <string>确认</string>
+     <string>导出</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_key">
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>30</y>
+      <y>50</y>
       <width>211</width>
       <height>31</height>
      </rect>
@@ -47,7 +47,7 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>30</y>
+      <y>50</y>
       <width>181</width>
       <height>31</height>
      </rect>
@@ -60,6 +60,48 @@
     </property>
     <property name="text">
      <string>请输入脱敏密码：</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_browse">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>120</y>
+      <width>81</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>浏览</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_dir">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>120</y>
+      <width>241</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>120</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>文件：</string>
     </property>
    </widget>
   </widget>
