@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="pushButton_OK">
     <property name="geometry">
      <rect>
       <x>180</x>
@@ -76,25 +76,5 @@
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>pushButton</sender>
-   <signal>clicked()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>259</x>
-     <y>221</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>367</x>
-     <y>186</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>
-  <signal>signal1()</signal>
- </slots>
+ <connections/>
 </ui>

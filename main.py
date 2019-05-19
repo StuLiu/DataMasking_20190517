@@ -12,13 +12,11 @@
 ''' 
 
 import sys
-import main_window
+from Controller.MaskController import MaskController
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    MainWindow = QMainWindow()
-    ui = main_window.Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    masker = MaskController()
+    masker.mainWindow.show()
     sys.exit(app.exec_())
