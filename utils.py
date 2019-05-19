@@ -12,8 +12,10 @@
 '''
 
 from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
+import pickle
 
 def encrypt(key_str, data_str)->bytes:
+	assert len(key_str) == 16
 	key_bytes = bytes(key_str, encoding='utf-8')
 	data_bytes = bytes(data_str, encoding='utf-8')
 	crypt_sm4 = CryptSM4()
@@ -21,6 +23,7 @@ def encrypt(key_str, data_str)->bytes:
 	return crypt_sm4.crypt_ecb(data_bytes)  # bytes类型
 
 def decrypt(key_str, data_bytes)->str:
+	assert len(key_str) == 16
 	key_bytes = bytes(key_str, encoding='utf-8')
 	crypt_sm4 = CryptSM4()
 	crypt_sm4.set_key(key_bytes, SM4_DECRYPT)
@@ -32,6 +35,17 @@ def append_zero(key_str)->str:
 	if len(key_str) < 16:
 		key_str += '0' * (16 - len(key_str))
 	return key_str
+
+def save_map(file_name, dict_obj):
+	assert type(dict_obj) == type(dict())
+	with open(file_name, "wb") as file:
+		pickle.dump(dict_obj, file)
+
+def load_map(file_name):
+	with open(file_name, "rb") as file:
+		data = pickle.load(file)
+		assert type(data) == type(dict())
+		return data
 
 if __name__ == '__main__':
 	key_s = append_zero('123456')
@@ -45,3 +59,6 @@ if __name__ == '__main__':
 	value_s_2 = decrypt(key_s, value_b)
 	print(value_s_2)
 	assert value_s == value_s_2
+
+	save_map('test.file', {'1123213':'姓名 刘旺 性别 男'})
+	print(load_map('test.file'))
