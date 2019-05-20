@@ -23,6 +23,7 @@ class MaskController():
 		self.ui.setupUi(self.mainWindow)
 		self.ui.pushButton_export.clicked.connect(lambda: self._do_masking())
 		self.ui.pushButton_browse.clicked.connect(lambda: self._browse_file())
+
 	@pyqtSlot()
 	def _do_masking(self):
 		try:
@@ -41,9 +42,9 @@ class MaskController():
 			data_private_masked = encrypt(key_str=key_str, data_str=data_private)
 			# mapping dict add
 			mapping_dict[data_private_masked] = data_public
-			save_map('mapping.file', mapping_dict)
+			save_map('output.pkl', mapping_dict)
 
-			overproof_data = load_map('mapping.file')
+			overproof_data = load_map('output.pkl')
 			print(overproof_data)
 			data_private_recovered = decrypt(key_str=key_str, data_bytes=list(overproof_data.keys())[0])
 			assert data_private_recovered == data_private
@@ -64,7 +65,7 @@ class MaskController():
 	def _get_path(self):
 		dir_path = self.ui.lineEdit_dir.text()
 		if len(dir_path) <= 0:
-			raise Exception('Please browse the data dir!')
+			raise Exception('Please browse the data file or directory!')
 		else:
 			return dir_path
 
