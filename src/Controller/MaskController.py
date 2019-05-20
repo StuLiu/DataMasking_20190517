@@ -14,7 +14,7 @@
 from Viewer.main_window import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtCore import pyqtSlot
-from src.utils import append_zero, encrypt, decrypt, save_map, load_map, read_data
+from src.utils import append_zero, encrypt, decrypt, save_map, load_map, read_data, save_data
 class MaskController():
 
 	def __init__(self):
@@ -23,6 +23,7 @@ class MaskController():
 		self.ui.setupUi(self.mainWindow)
 		self.ui.pushButton_export.clicked.connect(lambda: self._do_masking())
 		self.ui.pushButton_browse.clicked.connect(lambda: self._browse_file())
+		self.ui.pushButton_import.clicked.connect(lambda: self._import_result())
 
 	@pyqtSlot()
 	def _do_masking(self):
@@ -42,7 +43,7 @@ class MaskController():
 			data_private_masked = encrypt(key_str=key_str, data_str=data_private)
 			# mapping dict add
 			mapping_dict[data_private_masked] = data_public
-			save_map('output.pkl', mapping_dict)
+			save_map('data/output.pkl', mapping_dict)
 
 			overproof_data = load_map('output.pkl')
 			print(overproof_data)
@@ -51,6 +52,25 @@ class MaskController():
 			print('data_private_recovered:', data_private_recovered)
 		except Exception as e:
 			print(e)
+
+	@pyqtSlot()
+	def _import_result(self):
+		try:
+			print('do import')
+			# get key and dir's abs_path
+			key_str = self._get_key()
+			file_path = self._get_path()
+			print(key_str, file_path)
+			overproof_dict = load_map(file_path)
+			result_dict = {}
+			for data_private, data_public in overproof_dict.items():
+				data_private_recovered = decrypt(key_str=key_str, data_bytes=data_private)
+				result_dict[data_private_recovered] = data_public
+			print(result_dict)
+			save_data('./data/data_saved.txt', result_dict)
+		except Exception as e:
+			print(e)
+
 
 	@pyqtSlot()
 	def _browse_dir(self):

@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="pushButton_export">
     <property name="geometry">
      <rect>
-      <x>180</x>
-      <y>190</y>
+      <x>90</x>
+      <y>180</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -102,6 +102,25 @@
     </property>
     <property name="text">
      <string>文件：</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_import">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>180</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>宋体</family>
+      <pointsize>14</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>加载</string>
     </property>
    </widget>
   </widget>

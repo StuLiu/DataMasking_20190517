@@ -53,7 +53,16 @@ def read_data(file_path)->(str,list):
 		lines = file.readlines()
 		return lines[0], lines[1:]
 
-
+def save_data(file_path, data):
+	"""data:{}"""
+	with open(file_path, 'w', encoding='utf-8') as file:
+		for k,v in data.items():
+			lines = k
+			for line in v:
+				lines += line
+			file.write(lines)
+# d = {'a\n':['asd\n','sddddd\n'],'c\n':['asd\n','sddddd\n']}
+# save_data('./oo.txt', d)
 if __name__ == '__main__':
 	key_s = append_zero('123456')
 	key = bytes(key_s, encoding='utf-8')
