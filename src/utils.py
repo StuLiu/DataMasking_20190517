@@ -37,12 +37,12 @@ def append_zero(key_str)->str:
 		key_str += '0' * (16 - len(key_str))
 	return key_str
 
-def save_map(file_name, dict_obj):
+def save_pickle(file_name, dict_obj):
 	assert type(dict_obj) == type(dict())
 	with open(file_name, "wb") as file:
 		pickle.dump(dict_obj, file)
 
-def load_map(file_name):
+def load_pickle(file_name):
 	with open(file_name, "rb") as file:
 		data = pickle.load(file)
 		assert type(data) == type(dict())

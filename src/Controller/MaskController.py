@@ -14,7 +14,7 @@
 from Viewer.main_window import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from PyQt5.QtCore import pyqtSlot
-from src.utils import append_zero, encrypt, decrypt, save_map, load_map, read_data, save_data
+from src.utils import append_zero, encrypt, decrypt, save_pickle, load_pickle, read_data, save_data
 class MaskController():
 
 	def __init__(self):
@@ -43,9 +43,9 @@ class MaskController():
 			data_private_masked = encrypt(key_str=key_str, data_str=data_private)
 			# mapping dict add
 			mapping_dict[data_private_masked] = data_public
-			save_map('data/output.pkl', mapping_dict)
+			save_pickle('../data/data_masked.pkl', mapping_dict)
 
-			overproof_data = load_map('output.pkl')
+			overproof_data = load_pickle('../data/data_masked.pkl')
 			print(overproof_data)
 			data_private_recovered = decrypt(key_str=key_str, data_bytes=list(overproof_data.keys())[0])
 			assert data_private_recovered == data_private
@@ -61,25 +61,25 @@ class MaskController():
 			key_str = self._get_key()
 			file_path = self._get_path()
 			print(key_str, file_path)
-			overproof_dict = load_map(file_path)
+			overproof_dict = load_pickle(file_path)
 			result_dict = {}
 			for data_private, data_public in overproof_dict.items():
 				data_private_recovered = decrypt(key_str=key_str, data_bytes=data_private)
 				result_dict[data_private_recovered] = data_public
 			print(result_dict)
-			save_data('./data/data_saved.txt', result_dict)
+			save_data('../data/data_recovered.csv', result_dict)
 		except Exception as e:
 			print(e)
 
 
 	@pyqtSlot()
 	def _browse_dir(self):
-		selected_path = QFileDialog.getExistingDirectory(caption="浏览", directory="./data")
+		selected_path = QFileDialog.getExistingDirectory(caption="浏览", directory="../data")
 		self.ui.lineEdit_dir.setText(selected_path)
 
 	@pyqtSlot()
 	def _browse_file(self):
-		selected_path = QFileDialog.getOpenFileName(caption="浏览", directory="./data")
+		selected_path = QFileDialog.getOpenFileName(caption="浏览", directory="../data")
 		self.ui.lineEdit_dir.setText(selected_path[0])
 
 	def _get_path(self):
