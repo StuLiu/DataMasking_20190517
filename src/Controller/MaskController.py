@@ -12,7 +12,7 @@
 ''' 
 
 from Viewer.main_window import Ui_MainWindow
-from PyQt5.QtWidgets import QMainWindow, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QWidget
 from PyQt5.QtCore import pyqtSlot
 from src.utils import append_zero, encrypt, decrypt, save_pickle, load_pickle, read_data, save_data
 class MaskController():
@@ -45,12 +45,15 @@ class MaskController():
 			mapping_dict[data_private_masked] = data_public
 			save_pickle('../data/data_masked.pkl', mapping_dict)
 
+			QMessageBox.information(QWidget(), "Information", "脱敏成功")
+
 			overproof_data = load_pickle('../data/data_masked.pkl')
 			print(overproof_data)
 			data_private_recovered = decrypt(key_str=key_str, data_bytes=list(overproof_data.keys())[0])
 			assert data_private_recovered == data_private
 			print('data_private_recovered:', data_private_recovered)
 		except Exception as e:
+			QMessageBox.warning(QWidget(), "warning", str(e))
 			print(e)
 
 	@pyqtSlot()
@@ -68,7 +71,9 @@ class MaskController():
 				result_dict[data_private_recovered] = data_public
 			print(result_dict)
 			save_data('../data/data_recovered.csv', result_dict)
+			QMessageBox.information(QWidget(), "Information", "解密成功")
 		except Exception as e:
+			QMessageBox.warning(QWidget(), "warning", str(e))
 			print(e)
 
 

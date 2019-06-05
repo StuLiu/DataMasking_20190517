@@ -41,6 +41,7 @@ def save_pickle(file_name, dict_obj):
 	assert type(dict_obj) == type(dict())
 	with open(file_name, "wb") as file:
 		pickle.dump(dict_obj, file)
+	return
 
 def load_pickle(file_name):
 	with open(file_name, "rb") as file:
