@@ -44,7 +44,7 @@ def append_zero(key_str)->str:
 def read_xlsx(file_path, have_head=True)->dict:
 	result = {}
 	wb = load_workbook(file_path)
-	print('wb.sheetnames:',wb.sheetnames)
+	# print('wb.sheetnames:',wb.sheetnames)
 	for sheetname in wb.sheetnames:
 		sheet = wb[sheetname]
 		rows_list = []
@@ -56,9 +56,9 @@ def read_xlsx(file_path, have_head=True)->dict:
 def save_xlsx(file_path, data_dict)->None:
 	wb = Workbook()
 	for key, values in data_dict.items():
-		print(key)
-		for row in values:
-			print(row)
+		# print(key)
+		# for row in values:
+		# 	print(row)
 		ws = wb.create_sheet(title=key)
 		for row in values:
 			ws.append(row)
@@ -107,7 +107,7 @@ def do_encrypt(key_str, data_rows, year)->(str, list):
 
 def do_decrypt(key_str, data_rows, year, hash_bytes):
 	"""data_rows:list()"""
-	print(data_rows)
+	# print(data_rows)
 	if year == '17' or year == '18':
 		indexs = [7, 20, 22, 24, 26, 33, 34, 39, 48, 53]    # 必须解密字段的下标
 		# 处理条件加密字段
@@ -120,7 +120,7 @@ def do_decrypt(key_str, data_rows, year, hash_bytes):
 	# 处理必须加密字段
 	for row in data_rows[1:]:
 		for index in indexs:
-			print(hash_bytes[row[index]])
+			# print(hash_bytes[row[index]])
 			row[index] = decrypt(key_str, hash_bytes[str(row[index])])
 	return year, data_rows
 

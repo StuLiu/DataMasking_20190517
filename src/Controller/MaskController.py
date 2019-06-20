@@ -29,14 +29,14 @@ class MaskController():
 	@pyqtSlot()
 	def _do_masking(self):
 		try:
-			print('do masking')
+			# print('do masking')
 			# create mapping dict, keys are the hash of the values, and the values are the encrypt bytes
 			mapping_dict = dict()
 			encrypt_data_dict = {}
 			# get key and dir's abs_path
 			key_str = self._get_key()
 			file_path = self._get_path()
-			print(key_str, file_path)
+			# print(key_str, file_path)
 			# get data
 			data_dict = read_xlsx(file_path)
 			for year, sheet_data in data_dict.items():
@@ -48,7 +48,7 @@ class MaskController():
 			QMessageBox.information(QWidget(), "Information", "数据脱敏完成")
 			write_path = QFileDialog.getSaveFileName(caption="保存为.xlsx文档", directory="./")[0]
 			# write_path = './加密数据.xlsx'
-			print(write_path)
+			# print(write_path)
 
 			save_pickle('mapping.pkl', mapping_dict)
 			save_xlsx(write_path, encrypt_data_dict)
@@ -72,11 +72,11 @@ class MaskController():
 	@pyqtSlot()
 	def _do_demasking(self):
 		try:
-			print('do import')
+			# print('do import')
 			# get key and dir's abs_path
 			key_str = self._get_key()
 			file_path = self._get_path()
-			print(key_str, file_path)
+			# print(key_str, file_path)
 
 			data_dict_enc = read_xlsx(file_path)
 			hash_bytes = load_pickle('mapping.pkl')
@@ -89,7 +89,7 @@ class MaskController():
 			QMessageBox.information(QWidget(), "Information", "解密成功")
 		except Exception as e:
 			QMessageBox.warning(QWidget(), "warning", str(e))
-			print(e)
+			# print(e)
 
 
 	@pyqtSlot()
