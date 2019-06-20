@@ -29,9 +29,9 @@
    <widget class="QPushButton" name="pushButton_export">
     <property name="geometry">
      <rect>
-      <x>90</x>
+      <x>40</x>
       <y>180</y>
-      <width>91</width>
+      <width>181</width>
       <height>31</height>
      </rect>
     </property>
@@ -42,25 +42,31 @@
      </font>
     </property>
     <property name="text">
-     <string>导出</string>
+     <string>加密</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEdit_key">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>90</x>
       <y>50</y>
-      <width>211</width>
+      <width>321</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="echoMode">
+     <enum>QLineEdit::Password</enum>
+    </property>
+    <property name="dragEnabled">
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>30</x>
       <y>50</y>
-      <width>181</width>
+      <width>71</width>
       <height>31</height>
      </rect>
     </property>
@@ -71,13 +77,13 @@
      </font>
     </property>
     <property name="text">
-     <string>请输入脱敏密码：</string>
+     <string>密码：</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_browse">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>330</x>
       <y>120</y>
       <width>81</width>
       <height>31</height>
@@ -92,7 +98,7 @@
      <rect>
       <x>90</x>
       <y>120</y>
-      <width>241</width>
+      <width>231</width>
       <height>31</height>
      </rect>
     </property>
@@ -119,9 +125,9 @@
    <widget class="QPushButton" name="pushButton_import">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>230</x>
       <y>180</y>
-      <width>91</width>
+      <width>181</width>
       <height>31</height>
      </rect>
     </property>
@@ -132,7 +138,7 @@
      </font>
     </property>
     <property name="text">
-     <string>加载</string>
+     <string>解密</string>
     </property>
    </widget>
   </widget>

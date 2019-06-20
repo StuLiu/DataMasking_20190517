@@ -13,7 +13,7 @@
 
 import sys
 from Controller.MaskController import MaskController
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
