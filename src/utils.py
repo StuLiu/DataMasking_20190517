@@ -12,10 +12,11 @@
 '''
 
 from gmssl.sm4 import CryptSM4, SM4_ENCRYPT, SM4_DECRYPT
-from openpyxl import load_workbook, Workbook
 import pickle
+from openpyxl import load_workbook, Workbook
+import time
 
-def encrypt(key_str, data_str): # ->bytes
+def _encrypt(key_str, data_str): # ->bytes
 	if data_str == None:
 		return None
 	assert len(key_str) == 16
@@ -25,7 +26,7 @@ def encrypt(key_str, data_str): # ->bytes
 	crypt_sm4.set_key(key_bytes, SM4_ENCRYPT)
 	return crypt_sm4.crypt_ecb(data_bytes)  # bytes类型
 
-def decrypt(key_str, data_bytes):   # ->str
+def _decrypt(key_str, data_bytes):   # ->str
 	if data_bytes == None:
 		return None
 	assert len(key_str) == 16
@@ -41,29 +42,6 @@ def append_zero(key_str)->str:
 		key_str += '0' * (16 - len(key_str))
 	return key_str
 
-def read_xlsx(file_path, have_head=True)->dict:
-	result = {}
-	wb = load_workbook(file_path)
-	# print('wb.sheetnames:',wb.sheetnames)
-	for sheetname in wb.sheetnames:
-		sheet = wb[sheetname]
-		rows_list = []
-		for row in sheet.values:
-			rows_list.append(list(row))
-		result[sheetname] = rows_list
-	return result
-
-def save_xlsx(file_path, data_dict)->None:
-	wb = Workbook()
-	for key, values in data_dict.items():
-		# print(key)
-		# for row in values:
-		# 	print(row)
-		ws = wb.create_sheet(title=key)
-		for row in values:
-			ws.append(row)
-	wb.save(file_path)
-
 def save_pickle(file_name, dict_obj):
 	assert type(dict_obj) == type(dict())
 	with open(file_name, "wb") as file:
@@ -76,84 +54,178 @@ def load_pickle(file_name)->dict:
 		assert type(data) == type(dict())
 		return data
 
-
-def do_encrypt(key_str, data_rows, year)->(str, list):
+def mask_row(key_str, year, row)->(list, dict):
 	hash_bytes = {}     # the dict with key:hashcode and value:bytes
-	if len(data_rows) <= 1:
-		return year, [[]], hash_bytes
 	if year == '17' or year == '18':
 		indexs = [7, 20, 22, 24, 26, 33, 34, 39, 48, 53]    # 必须加密字段的下标
-		# 处理条件加密字段
-		for row in data_rows[1:]:
-			if row[36] == '生产':
-				encrypt_bytes = encrypt(key_str, str(row[0]))
-				encrypt_hash = str(hash(encrypt_bytes))
-				hash_bytes[encrypt_hash] = encrypt_bytes
-				row[0] = encrypt_hash
-				encrypt_bytes = encrypt(key_str, str(row[6]))
-				encrypt_hash = str(hash(encrypt_bytes))
-				hash_bytes[encrypt_hash] = encrypt_bytes
-				row[6] = encrypt_hash
 	else:
 		indexs = []
-	# 处理必须加密字段
-	for row in data_rows[1:]:
-		for index in indexs:
-			encrypt_bytes = encrypt(key_str, str(row[index]))
+	# 处理条件加密字段
+	if year == '17' or year == '18':
+		# 如果抽样环节为生产则加密
+		if row[36] == '生产':
+			encrypt_bytes = _encrypt(key_str, str(row[0]))
 			encrypt_hash = str(hash(encrypt_bytes))
-			row[index] = encrypt_hash
 			hash_bytes[encrypt_hash] = encrypt_bytes
-	return year, data_rows, hash_bytes
+			row[0] = encrypt_hash
+			encrypt_bytes = _encrypt(key_str, str(row[6]))
+			encrypt_hash = str(hash(encrypt_bytes))
+			hash_bytes[encrypt_hash] = encrypt_bytes
+			row[6] = encrypt_hash
+		# 加密样品名称中的商标
+		row[8] = str(row[8]).replace(str(row[39]), '********')
+	# 处理必须加密字段
+	for index in indexs:
+		encrypt_bytes = _encrypt(key_str, str(row[index]))
+		encrypt_hash = str(hash(encrypt_bytes))
+		row[index] = encrypt_hash
+		hash_bytes[encrypt_hash] = encrypt_bytes
+	return row, hash_bytes
 
-def do_decrypt(key_str, data_rows, year, hash_bytes):
+def demask_row(key_str, year, row, hash_bytes)->list:
 	"""data_rows:list()"""
 	# print(data_rows)
 	if year == '17' or year == '18':
 		indexs = [7, 20, 22, 24, 26, 33, 34, 39, 48, 53]    # 必须解密字段的下标
-		# 处理条件加密字段
-		for row in data_rows[1:]:
-			if row[36] == '生产':
-				row[0] = decrypt(key_str, hash_bytes[str(row[0])])
-				row[6] = decrypt(key_str, hash_bytes[str(row[6])])
 	else:
 		indexs = []
 	# 处理必须加密字段
-	for row in data_rows[1:]:
-		for index in indexs:
-			# print(hash_bytes[row[index]])
-			row[index] = decrypt(key_str, hash_bytes[str(row[index])])
-	return year, data_rows
+	for index in indexs:
+		# print(hash_bytes[row[index]])
+		row[index] = _decrypt(key_str, hash_bytes[str(row[index])])
+	# 处理条件加密字段
+	if year == '17' or year == '18':
+		# 如果是生产环节解密
+		if row[36] == '生产':
+			row[0] = _decrypt(key_str, hash_bytes[str(row[0])])
+			row[6] = _decrypt(key_str, hash_bytes[str(row[6])])
+		# 使用解密后的商标替换样品名称中的屏蔽字段
+		row[8] = str(row[8]).replace('********', str(row[39]))
+	return row
+
+# def read_xlsx(file_path, have_head=True)->dict:
+# 	result = {}
+# 	wb = load_workbook(file_path)
+# 	# print('wb.sheetnames:',wb.sheetnames)
+# 	for sheetname in wb.sheetnames:
+# 		sheet = wb[sheetname]
+# 		rows_list = []
+# 		for row in sheet.values:
+# 			rows_list.append(list(row))
+# 		result[sheetname] = rows_list
+# 	return result
+#
+# def save_xlsx(file_path, data_dict)->None:
+# 	wb = Workbook()
+# 	for key, values in data_dict.items():
+# 		ws = wb.create_sheet(title=key)
+# 		for row in values:
+# 			ws.append(row)
+# 	wb.save(file_path)
+
+# def do_masking():
+# 	wb_read = load_workbook('17.18_bigdata.xlsx', read_only=True)
+# 	wb_write = Workbook(write_only=True)
+# 	hash_bytes = load_pickle('mapping.pkl')
+# 	# get the count of all data rows
+# 	row_count = 0
+# 	current_count = 1
+# 	for sheetname in wb_read.sheetnames:
+# 		sheet_read = wb_read[sheetname]
+# 		row_count += sheet_read.max_row
+# 	# read data and do masking, and then save the masked rows
+# 	for sheetname in wb_read.sheetnames:
+# 		print('processing sheet {}:'.format(sheetname))
+# 		sheet_read = wb_read[sheetname]
+# 		# sheet_row_count = sheet_read.max_row
+# 		# print(sheet_row_count)
+# 		sheet_write = wb_write.create_sheet(title=sheetname)
+# 		rows_read = sheet_read.rows
+# 		for row in rows_read:
+# 			row_values = []
+# 			for cell in row:
+# 				row_values.append(cell.value)
+# 			# do masking
+# 			if current_count > 1:
+# 				masked_row, hash_bytes_added = mask_row('1234567890123456', sheetname, row_values)
+# 				hash_bytes.update(hash_bytes_added)
+# 				sheet_write.append(masked_row)
+# 			else:
+# 				sheet_write.append(row_values)
+# 			current_count += 1
+# 			if current_count % 500 == 0:
+# 				print('完成了{}%'.format(current_count / row_count * 100))
+# 	save_pickle('mapping.pkl', hash_bytes)
+# 	wb_write.save('17.18脱敏数据.xlsx')
+
+
 
 if __name__ == '__main__':
 
-	a = 'asdasd'
-	d = {}
-	d[hash(a)] = a
-	print(d)
+	# a = 'asdasd'
+	# d = {}
+	# d[hash(a)] = a
+	# print(d)
+	#
+	#
+	#
+	# hash_bytes = {}
+	# data_dict = read_xlsx('../17、18年统计数据格式模板.xlsx')
+	# data_dict_enc = {}
+	# for year, data_rows in data_dict.items():
+	# 	year_, data_rows_, hash_bytes_ = do_encrypt(append_zero('123'), data_rows, year)
+	# 	hash_bytes.update(hash_bytes_)
+	# 	print(year, hash_bytes)
+	# 	data_dict_enc[year_] = data_rows_
+	# 	for data_row in data_rows_:
+	# 		print(data_row)
+	# save_xlsx('../加密数据.xlsx', data_dict_enc)
+	# save_pickle('mapping.pkl', hash_bytes)
+	#
+	# data_dict_enc = read_xlsx('../加密数据.xlsx')
+	# hash_bytes = load_pickle('mapping.pkl')
+	# for year, data_rows in data_dict_enc.items():
+	# 	print(do_decrypt(append_zero('123'), data_rows, year, hash_bytes))
+	#
+	# a = {}
+	# a['1'] = 10
+	# b = {}
+	# b['1'] = 100
+	# a.update(b)
+	# print(a)
 
 
-
-	hash_bytes = {}
-	data_dict = read_xlsx('../17、18年统计数据格式模板.xlsx')
-	data_dict_enc = {}
-	for year, data_rows in data_dict.items():
-		year_, data_rows_, hash_bytes_ = do_encrypt(append_zero('123'), data_rows, year)
-		hash_bytes.update(hash_bytes_)
-		print(year, hash_bytes)
-		data_dict_enc[year_] = data_rows_
-		for data_row in data_rows_:
-			print(data_row)
-	save_xlsx('../加密数据.xlsx', data_dict_enc)
-	save_pickle('mapping.pkl', hash_bytes)
-
-	data_dict_enc = read_xlsx('../加密数据.xlsx')
+	wb_read = load_workbook('17.18_bigdata.xlsx', read_only=True)
+	wb_write = Workbook(write_only=True)
 	hash_bytes = load_pickle('mapping.pkl')
-	for year, data_rows in data_dict_enc.items():
-		print(do_decrypt(append_zero('123'), data_rows, year, hash_bytes))
-
-	a = {}
-	a['1'] = 10
-	b = {}
-	b['1'] = 100
-	a.update(b)
-	print(a)
+	# get the count of all data rows
+	row_count = 0
+	current_count = 1
+	for sheetname in wb_read.sheetnames:
+		sheet_read = wb_read[sheetname]
+		row_count += sheet_read.max_row
+	# read data and do masking, and then save the masked rows
+	for sheetname in wb_read.sheetnames:
+		print('processing sheet {}:'.format(sheetname))
+		sheet_read = wb_read[sheetname]
+		# sheet_row_count = sheet_read.max_row
+		# print(sheet_row_count)
+		sheet_write = wb_write.create_sheet(title=sheetname)
+		rows_read = sheet_read.rows
+		for row in rows_read:
+			time_from = time.time()
+			row_values = []
+			for cell in row:
+				row_values.append(cell.value)
+			# do masking
+			if current_count > 1:
+				# masked_row, hash_bytes_added = mask_row('1234567890123456', sheetname, row_values)
+				# hash_bytes.update(hash_bytes_added)
+				for i in range(15000):
+					sheet_write.append(row_values)
+			else:
+				sheet_write.append(row_values)
+			current_count += 1
+			time_to = time.time()
+			print('完成了{}%, 用时{}s'.format(current_count / row_count * 100, time_to - time_from))
+	wb_write.save('17.18_bigdata_1.xlsx')

@@ -14,7 +14,8 @@
 from Viewer.main_window import Ui_MainWindow
 from PyQt5.QtWidgets import QMainWindow, QFileDialog, QMessageBox, QWidget
 from PyQt5.QtCore import pyqtSlot
-from src.utils import append_zero, do_encrypt, do_decrypt, read_xlsx, save_xlsx, save_pickle, load_pickle
+from openpyxl import load_workbook, Workbook
+from src.utils import append_zero, save_pickle, load_pickle, mask_row, demask_row
 
 class MaskController():
 
@@ -29,42 +30,50 @@ class MaskController():
 	@pyqtSlot()
 	def _do_masking(self):
 		try:
-			# print('do masking')
-			# create mapping dict, keys are the hash of the values, and the values are the encrypt bytes
-			mapping_dict = dict()
-			encrypt_data_dict = {}
 			# get key and dir's abs_path
 			key_str = self._get_key()
 			file_path = self._get_path()
 			# print(key_str, file_path)
-			# get data
-			data_dict = read_xlsx(file_path)
-			for year, sheet_data in data_dict.items():
-				# encrypt data
-				year_, data_rows, hash_bytes = do_encrypt(key_str, list(sheet_data.copy()), year)
-				encrypt_data_dict[year_] = data_rows
-				mapping_dict.update(hash_bytes)
-			pass
-			QMessageBox.information(QWidget(), "Information", "数据脱敏完成")
+			wb_read = load_workbook(file_path, read_only=True)
+			wb_write = Workbook(write_only=True)
+			hash_bytes = load_pickle('mapping.pkl')
+			# get the count of all data rows
+			row_count = 0
+			current_count = 1
+			for sheetname in wb_read.sheetnames:
+				sheet_read = wb_read[sheetname]
+				row_count += sheet_read.max_row
+			# read data and do masking, and then save the masked rows
+			for sheetname in wb_read.sheetnames:
+				print('processing sheet {}:'.format(sheetname))
+				sheet_read = wb_read[sheetname]
+				# sheet_row_count = sheet_read.max_row
+				# print(sheet_row_count)
+				sheet_write = wb_write.create_sheet(title=sheetname)
+				rows_read = sheet_read.rows
+				for row in rows_read:
+					row_values = []
+					for cell in row:
+						row_values.append(cell.value)
+					# do masking
+					if current_count > 1:
+						masked_row, hash_bytes_added = mask_row(key_str, sheetname, row_values)
+						hash_bytes.update(hash_bytes_added)
+						sheet_write.append(masked_row)
+					else:
+						sheet_write.append(row_values)
+					current_count += 1
+					if current_count % 100 == 0 or current_count == row_count:
+						self._set_processBar(current_count / row_count * 100)
+						print('完成了{}%'.format(current_count / row_count * 100))
+			save_pickle('mapping.pkl', hash_bytes)
+
+			QMessageBox.information(QWidget(), "Information", "数据脱敏成功，点击确认后请保存文件")
 			write_path = QFileDialog.getSaveFileName(caption="保存为.xlsx文档", directory="./")[0]
 			# write_path = './加密数据.xlsx'
 			# print(write_path)
-
-			save_pickle('mapping.pkl', mapping_dict)
-			save_xlsx(write_path, encrypt_data_dict)
-
-
-			# # mapping dict add
-			# mapping_dict[data_private_masked] = data_public
-			# save_pickle('../data/data_masked.pkl', mapping_dict)
-			#
-			# QMessageBox.information(QWidget(), "Information", "脱敏成功")
-			#
-			# overproof_data = load_pickle('../data/data_masked.pkl')
-			# print(overproof_data)
-			# data_private_recovered = decrypt(key_str=key_str, data_bytes=list(overproof_data.keys())[0])
-			# assert data_private_recovered == data_private
-			# print('data_private_recovered:', data_private_recovered)
+			wb_write.save(write_path)
+			QMessageBox.information(QWidget(), "Information", "保存完成")
 		except Exception as e:
 			QMessageBox.warning(QWidget(), "warning", str(e))
 			print(e)
@@ -78,15 +87,8 @@ class MaskController():
 			file_path = self._get_path()
 			# print(key_str, file_path)
 
-			data_dict_enc = read_xlsx(file_path)
-			hash_bytes = load_pickle('mapping.pkl')
-			data_dict_origin = {}
-			for year, data_rows in data_dict_enc.items():
-				_, data_rows_origin =  do_decrypt(key_str, data_rows, year, hash_bytes)
-				data_dict_origin[year] = data_rows_origin
+			QMessageBox.information(QWidget(), "Information", "解密成功，点击确认后请保存文件")
 			write_path = QFileDialog.getSaveFileName(caption="保存为.xlsx文档", directory="./")[0]
-			save_xlsx(write_path, data_dict_origin)
-			QMessageBox.information(QWidget(), "Information", "解密成功")
 		except Exception as e:
 			QMessageBox.warning(QWidget(), "warning", str(e))
 			# print(e)
@@ -101,6 +103,9 @@ class MaskController():
 	def _browse_file(self):
 		selected_path = QFileDialog.getOpenFileName(caption="浏览", directory="./")
 		self.ui.lineEdit_dir.setText(selected_path[0])
+
+	def _set_processBar(self, value):
+		self.ui.progressBar.setValue(int(value))
 
 	def _get_path(self):
 		dir_path = self.ui.lineEdit_dir.text()
